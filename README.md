@@ -103,7 +103,7 @@ cd ..
 Asegurate de tener una instancia de MongoDB corriendo. Por defecto, la aplicacion se conecta a:
 
 ```
-mongodb://root:12345abc@10.2.20.113:27017/calculadora_paneles?authSource=admin&directConnection=true
+mongodb://localhost:27017
 ```
 
 Si tu instancia es diferente, configura la variable de entorno `MONGODB_URI` (ver seccion de variables de entorno).
