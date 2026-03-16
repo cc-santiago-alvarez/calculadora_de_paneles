@@ -1,0 +1,188 @@
+{
+  "description": "Irradiación solar promedio por zona/departamento de Colombia (kWh/m²/día)",
+  "source": "IDEAM - Atlas de Radiación Solar, Ultravioleta y Ozono de Colombia",
+  "zones": {
+    "La Guajira": {
+      "annualAvgGHI": 6.0,
+      "monthlyGHI": [6.2, 6.4, 6.3, 5.8, 5.5, 5.8, 6.1, 6.0, 5.7, 5.5, 5.6, 6.1],
+      "capital": "Riohacha",
+      "latitude": 11.54,
+      "longitude": -72.91
+    },
+    "Atlántico": {
+      "annualAvgGHI": 5.5,
+      "monthlyGHI": [5.7, 5.9, 5.8, 5.4, 5.1, 5.3, 5.5, 5.4, 5.1, 5.0, 5.1, 5.6],
+      "capital": "Barranquilla",
+      "latitude": 10.96,
+      "longitude": -74.78
+    },
+    "Magdalena": {
+      "annualAvgGHI": 5.3,
+      "monthlyGHI": [5.5, 5.7, 5.6, 5.2, 4.9, 5.1, 5.3, 5.2, 4.9, 4.8, 5.0, 5.4],
+      "capital": "Santa Marta",
+      "latitude": 11.24,
+      "longitude": -74.20
+    },
+    "Cesar": {
+      "annualAvgGHI": 5.2,
+      "monthlyGHI": [5.4, 5.6, 5.5, 5.1, 4.8, 5.0, 5.2, 5.1, 4.8, 4.7, 4.9, 5.3],
+      "capital": "Valledupar",
+      "latitude": 10.47,
+      "longitude": -73.25
+    },
+    "Norte de Santander": {
+      "annualAvgGHI": 4.8,
+      "monthlyGHI": [4.9, 5.1, 5.0, 4.7, 4.5, 4.7, 4.9, 4.8, 4.5, 4.4, 4.6, 4.9],
+      "capital": "Cúcuta",
+      "latitude": 7.89,
+      "longitude": -72.50
+    },
+    "Santander": {
+      "annualAvgGHI": 4.6,
+      "monthlyGHI": [4.8, 5.0, 4.9, 4.5, 4.3, 4.5, 4.7, 4.6, 4.3, 4.2, 4.4, 4.7],
+      "capital": "Bucaramanga",
+      "latitude": 7.12,
+      "longitude": -73.12
+    },
+    "Bolívar": {
+      "annualAvgGHI": 5.0,
+      "monthlyGHI": [5.2, 5.4, 5.3, 4.9, 4.6, 4.8, 5.0, 4.9, 4.6, 4.5, 4.7, 5.1],
+      "capital": "Cartagena",
+      "latitude": 10.39,
+      "longitude": -75.51
+    },
+    "Sucre": {
+      "annualAvgGHI": 5.1,
+      "monthlyGHI": [5.3, 5.5, 5.4, 5.0, 4.7, 4.9, 5.1, 5.0, 4.7, 4.6, 4.8, 5.2],
+      "capital": "Sincelejo",
+      "latitude": 9.30,
+      "longitude": -75.39
+    },
+    "Córdoba": {
+      "annualAvgGHI": 4.9,
+      "monthlyGHI": [5.1, 5.3, 5.2, 4.8, 4.5, 4.7, 4.9, 4.8, 4.5, 4.4, 4.6, 5.0],
+      "capital": "Montería",
+      "latitude": 8.75,
+      "longitude": -75.88
+    },
+    "Antioquia": {
+      "annualAvgGHI": 4.5,
+      "monthlyGHI": [4.6, 4.8, 4.7, 4.4, 4.2, 4.4, 4.6, 4.5, 4.3, 4.1, 4.3, 4.5],
+      "capital": "Medellín",
+      "latitude": 6.25,
+      "longitude": -75.56
+    },
+    "Boyacá": {
+      "annualAvgGHI": 4.4,
+      "monthlyGHI": [4.5, 4.7, 4.6, 4.3, 4.1, 4.3, 4.5, 4.4, 4.2, 4.0, 4.2, 4.4],
+      "capital": "Tunja",
+      "latitude": 5.53,
+      "longitude": -73.36
+    },
+    "Cundinamarca": {
+      "annualAvgGHI": 4.3,
+      "monthlyGHI": [4.4, 4.6, 4.5, 4.2, 4.0, 4.2, 4.4, 4.3, 4.1, 3.9, 4.1, 4.3],
+      "capital": "Bogotá",
+      "latitude": 4.61,
+      "longitude": -74.08
+    },
+    "Tolima": {
+      "annualAvgGHI": 4.7,
+      "monthlyGHI": [4.9, 5.0, 4.9, 4.6, 4.4, 4.6, 4.8, 4.7, 4.4, 4.3, 4.5, 4.8],
+      "capital": "Ibagué",
+      "latitude": 4.44,
+      "longitude": -75.24
+    },
+    "Huila": {
+      "annualAvgGHI": 4.8,
+      "monthlyGHI": [5.0, 5.1, 5.0, 4.7, 4.5, 4.7, 4.9, 4.8, 4.5, 4.4, 4.6, 4.9],
+      "capital": "Neiva",
+      "latitude": 2.93,
+      "longitude": -75.28
+    },
+    "Valle del Cauca": {
+      "annualAvgGHI": 4.5,
+      "monthlyGHI": [4.6, 4.8, 4.7, 4.4, 4.2, 4.4, 4.6, 4.5, 4.3, 4.1, 4.3, 4.5],
+      "capital": "Cali",
+      "latitude": 3.45,
+      "longitude": -76.53
+    },
+    "Cauca": {
+      "annualAvgGHI": 4.2,
+      "monthlyGHI": [4.3, 4.5, 4.4, 4.1, 3.9, 4.1, 4.3, 4.2, 4.0, 3.8, 4.0, 4.2],
+      "capital": "Popayán",
+      "latitude": 2.44,
+      "longitude": -76.61
+    },
+    "Nariño": {
+      "annualAvgGHI": 4.0,
+      "monthlyGHI": [4.1, 4.3, 4.2, 3.9, 3.7, 3.9, 4.1, 4.0, 3.8, 3.6, 3.8, 4.0],
+      "capital": "Pasto",
+      "latitude": 1.21,
+      "longitude": -77.28
+    },
+    "Meta": {
+      "annualAvgGHI": 4.6,
+      "monthlyGHI": [5.0, 5.1, 4.9, 4.4, 4.1, 4.2, 4.5, 4.6, 4.5, 4.3, 4.4, 4.8],
+      "capital": "Villavicencio",
+      "latitude": 4.15,
+      "longitude": -73.64
+    },
+    "Casanare": {
+      "annualAvgGHI": 4.8,
+      "monthlyGHI": [5.2, 5.3, 5.1, 4.6, 4.3, 4.4, 4.7, 4.8, 4.6, 4.4, 4.6, 5.0],
+      "capital": "Yopal",
+      "latitude": 5.34,
+      "longitude": -72.39
+    },
+    "Arauca": {
+      "annualAvgGHI": 4.9,
+      "monthlyGHI": [5.3, 5.4, 5.2, 4.7, 4.4, 4.5, 4.8, 4.9, 4.7, 4.5, 4.7, 5.1],
+      "capital": "Arauca",
+      "latitude": 7.08,
+      "longitude": -70.76
+    },
+    "Risaralda": {
+      "annualAvgGHI": 4.3,
+      "monthlyGHI": [4.4, 4.6, 4.5, 4.2, 4.0, 4.2, 4.4, 4.3, 4.1, 3.9, 4.1, 4.3],
+      "capital": "Pereira",
+      "latitude": 4.81,
+      "longitude": -75.69
+    },
+    "Caldas": {
+      "annualAvgGHI": 4.3,
+      "monthlyGHI": [4.4, 4.6, 4.5, 4.2, 4.0, 4.2, 4.4, 4.3, 4.1, 3.9, 4.1, 4.3],
+      "capital": "Manizales",
+      "latitude": 5.07,
+      "longitude": -75.52
+    },
+    "Quindío": {
+      "annualAvgGHI": 4.2,
+      "monthlyGHI": [4.3, 4.5, 4.4, 4.1, 3.9, 4.1, 4.3, 4.2, 4.0, 3.8, 4.0, 4.2],
+      "capital": "Armenia",
+      "latitude": 4.53,
+      "longitude": -75.68
+    },
+    "Chocó": {
+      "annualAvgGHI": 3.5,
+      "monthlyGHI": [3.6, 3.8, 3.7, 3.4, 3.2, 3.4, 3.6, 3.5, 3.4, 3.2, 3.3, 3.5],
+      "capital": "Quibdó",
+      "latitude": 5.69,
+      "longitude": -76.66
+    },
+    "Amazonas": {
+      "annualAvgGHI": 4.0,
+      "monthlyGHI": [4.1, 4.2, 4.1, 3.9, 3.7, 3.8, 4.0, 4.1, 4.0, 3.9, 3.9, 4.0],
+      "capital": "Leticia",
+      "latitude": -4.22,
+      "longitude": -69.94
+    },
+    "San Andrés": {
+      "annualAvgGHI": 5.6,
+      "monthlyGHI": [5.8, 6.0, 5.9, 5.5, 5.2, 5.4, 5.6, 5.5, 5.2, 5.1, 5.3, 5.7],
+      "capital": "San Andrés",
+      "latitude": 12.58,
+      "longitude": -81.70
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "calculadora-paneles",
+  "outputfilename": "calculadora-paneles",
+  "frontend:install": "cd frontend && npm install",
+  "frontend:build": "cd frontend && npm run build",
+  "author": {
+    "name": "dev13"
+  }
+}

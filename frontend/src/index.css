@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Background */
+    --color-bg-canvas: hsl(40, 20%, 97%);
+    --color-bg-surface: hsl(40, 15%, 99%);
+    --color-bg-surface-raised: hsl(0, 0%, 100%);
+    --color-bg-inset: hsl(40, 10%, 95%);
+
+    /* Foreground / Text */
+    --color-fg-primary: hsl(220, 20%, 15%);
+    --color-fg-secondary: hsl(220, 10%, 40%);
+    --color-fg-tertiary: hsl(220, 8%, 55%);
+    --color-fg-muted: hsl(220, 5%, 70%);
+
+    /* Borders (rgba, never solid) */
+    --color-border-default: rgba(0, 0, 0, 0.08);
+    --color-border-subtle: rgba(0, 0, 0, 0.04);
+    --color-border-strong: rgba(0, 0, 0, 0.15);
+
+    /* Brand */
+    --color-brand: hsl(38, 92%, 50%);
+    --color-brand-soft: hsl(38, 90%, 94%);
+    --color-brand-hover: hsl(38, 92%, 45%);
+
+    /* Semantic */
+    --color-success: hsl(145, 63%, 42%);
+    --color-success-soft: hsl(145, 60%, 94%);
+    --color-warning: hsl(38, 92%, 50%);
+    --color-warning-soft: hsl(38, 90%, 94%);
+    --color-danger: hsl(0, 72%, 51%);
+    --color-danger-soft: hsl(0, 70%, 95%);
+    --color-info: hsl(210, 75%, 50%);
+    --color-info-soft: hsl(210, 70%, 94%);
+
+    /* Radii */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+
+    /* Transitions */
+    --transition-fast: 150ms cubic-bezier(0.2, 0, 0, 1);
+
+    /* Fonts */
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  html.dark {
+    /* Background — gamas de negro puro */
+    --color-bg-canvas: hsl(0, 0%, 8%);
+    --color-bg-surface: hsl(0, 0%, 11%);
+    --color-bg-surface-raised: hsl(0, 0%, 14%);
+    --color-bg-inset: hsl(0, 0%, 6%);
+
+    /* Foreground / Text */
+    --color-fg-primary: hsl(0, 0%, 93%);
+    --color-fg-secondary: hsl(0, 0%, 70%);
+    --color-fg-tertiary: hsl(0, 0%, 50%);
+    --color-fg-muted: hsl(0, 0%, 35%);
+
+    /* Borders */
+    --color-border-default: rgba(255, 255, 255, 0.08);
+    --color-border-subtle: rgba(255, 255, 255, 0.04);
+    --color-border-strong: rgba(255, 255, 255, 0.15);
+
+    /* Brand */
+    --color-brand: hsl(38, 92%, 52%);
+    --color-brand-soft: hsl(38, 50%, 15%);
+    --color-brand-hover: hsl(38, 92%, 58%);
+
+    /* Semantic */
+    --color-success: hsl(145, 55%, 50%);
+    --color-success-soft: hsl(145, 40%, 15%);
+    --color-warning: hsl(38, 92%, 52%);
+    --color-warning-soft: hsl(38, 50%, 15%);
+    --color-danger: hsl(0, 65%, 58%);
+    --color-danger-soft: hsl(0, 40%, 15%);
+    --color-info: hsl(210, 70%, 58%);
+    --color-info-soft: hsl(210, 40%, 15%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04';
+    color: var(--color-fg-primary);
+    background-color: var(--color-bg-canvas);
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-soft);
+    color: var(--color-fg-primary);
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  border-radius: 0.5rem;
+}
+
+html.dark .leaflet-container {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+html.dark .leaflet-container .leaflet-marker-icon,
+html.dark .leaflet-container .leaflet-popup {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+@keyframes spin-icon {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-theme-icon {
+  animation: spin-icon 0.3s cubic-bezier(0.2, 0, 0, 1);
+}

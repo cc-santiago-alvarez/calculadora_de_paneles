@@ -1,0 +1,8 @@
+node_modules/
+dist/
+build/
+backend-go/cmd/desktop/frontend/dist/
+.env
+*.log
+.DS_Store
+*.tsbuildinfo

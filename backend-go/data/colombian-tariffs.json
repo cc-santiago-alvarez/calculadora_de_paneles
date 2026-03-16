@@ -1,0 +1,54 @@
+{
+  "description": "Tarifas eléctricas promedio por estrato en Colombia (COP/kWh) - 2024",
+  "source": "CREG - Comisión de Regulación de Energía y Gas",
+  "tariffs": {
+    "1": {
+      "name": "Estrato 1 - Bajo-Bajo",
+      "tariffPerKwh": 450,
+      "subsidyPercent": 60,
+      "baseRate": 1125,
+      "description": "Subsidio del 60% sobre tarifa plena"
+    },
+    "2": {
+      "name": "Estrato 2 - Bajo",
+      "tariffPerKwh": 540,
+      "subsidyPercent": 50,
+      "baseRate": 1080,
+      "description": "Subsidio del 50% sobre tarifa plena"
+    },
+    "3": {
+      "name": "Estrato 3 - Medio-Bajo",
+      "tariffPerKwh": 680,
+      "subsidyPercent": 15,
+      "baseRate": 800,
+      "description": "Subsidio del 15% sobre tarifa plena"
+    },
+    "4": {
+      "name": "Estrato 4 - Medio",
+      "tariffPerKwh": 800,
+      "subsidyPercent": 0,
+      "baseRate": 800,
+      "description": "Sin subsidio ni contribución"
+    },
+    "5": {
+      "name": "Estrato 5 - Medio-Alto",
+      "tariffPerKwh": 960,
+      "subsidyPercent": -20,
+      "baseRate": 800,
+      "description": "Contribución del 20% sobre tarifa plena"
+    },
+    "6": {
+      "name": "Estrato 6 - Alto",
+      "tariffPerKwh": 960,
+      "subsidyPercent": -20,
+      "baseRate": 800,
+      "description": "Contribución del 20% sobre tarifa plena"
+    }
+  },
+  "notes": [
+    "Valores aproximados promedio nacional",
+    "Las tarifas varían por operador de red y ciudad",
+    "Ley 1715 de 2014: incentivos tributarios para autogeneración solar",
+    "Resolución CREG 030 de 2018: autogeneración a pequeña escala"
+  ]
+}
