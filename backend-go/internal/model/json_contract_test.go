@@ -30,9 +30,14 @@ func TestProjectJSONContract(t *testing.T) {
 			ConnectionType: "monofasica",
 		},
 		Roof: Roof{
+			RoofType:         "dos_aguas",
 			Area:             50,
 			Azimuth:          0,
 			Tilt:             10,
+			Slopes: []Slope{
+				{Area: 25, Tilt: 15, Azimuth: 0},
+				{Area: 25, Tilt: 15, Azimuth: 180},
+			},
 			UsablePercentage: 80,
 			ShadingProfile: ShadingProfile{
 				HasShading:  false,
@@ -247,5 +252,114 @@ func TestScenarioJSONFields(t *testing.T) {
 		if _, ok := fin[field]; !ok {
 			t.Errorf("missing financial field: %s", field)
 		}
+	}
+}
+
+func TestRoofEffectiveSlopes(t *testing.T) {
+	tests := []struct {
+		name          string
+		roof          Roof
+		wantLen       int
+		wantFirstArea float64
+		wantFirstTilt float64
+	}{
+		{
+			name: "legacy document (no roofType, no slopes)",
+			roof: Roof{
+				Area:    50,
+				Tilt:    10,
+				Azimuth: 0,
+			},
+			wantLen:       1,
+			wantFirstArea: 50,
+			wantFirstTilt: 10,
+		},
+		{
+			name: "plana without slopes",
+			roof: Roof{
+				RoofType: "plana",
+				Area:     60,
+				Tilt:     0,
+				Azimuth:  0,
+			},
+			wantLen:       1,
+			wantFirstArea: 60,
+			wantFirstTilt: 0,
+		},
+		{
+			name: "dos_aguas with slopes",
+			roof: Roof{
+				RoofType: "dos_aguas",
+				Area:     50,
+				Slopes: []Slope{
+					{Area: 25, Tilt: 15, Azimuth: 0},
+					{Area: 25, Tilt: 15, Azimuth: 180},
+				},
+			},
+			wantLen:       2,
+			wantFirstArea: 25,
+			wantFirstTilt: 15,
+		},
+		{
+			name: "cuatro_aguas with slopes",
+			roof: Roof{
+				RoofType: "cuatro_aguas",
+				Slopes: []Slope{
+					{Area: 10, Tilt: 20, Azimuth: 0},
+					{Area: 10, Tilt: 20, Azimuth: 90},
+					{Area: 10, Tilt: 20, Azimuth: 180},
+					{Area: 10, Tilt: 20, Azimuth: -90},
+				},
+			},
+			wantLen:       4,
+			wantFirstArea: 10,
+			wantFirstTilt: 20,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			slopes := tt.roof.EffectiveSlopes()
+			if len(slopes) != tt.wantLen {
+				t.Errorf("EffectiveSlopes() len = %d, want %d", len(slopes), tt.wantLen)
+			}
+			if slopes[0].Area != tt.wantFirstArea {
+				t.Errorf("first slope area = %f, want %f", slopes[0].Area, tt.wantFirstArea)
+			}
+			if slopes[0].Tilt != tt.wantFirstTilt {
+				t.Errorf("first slope tilt = %f, want %f", slopes[0].Tilt, tt.wantFirstTilt)
+			}
+		})
+	}
+}
+
+func TestRoofTotalArea(t *testing.T) {
+	tests := []struct {
+		name string
+		roof Roof
+		want float64
+	}{
+		{
+			name: "no slopes uses Area field",
+			roof: Roof{Area: 50},
+			want: 50,
+		},
+		{
+			name: "with slopes sums areas",
+			roof: Roof{
+				Area:   50,
+				Slopes: []Slope{{Area: 25}, {Area: 30}},
+			},
+			want: 55,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.roof.TotalArea()
+			if got != tt.want {
+				t.Errorf("TotalArea() = %f, want %f", got, tt.want)
+			}
+		})
 	}
 }

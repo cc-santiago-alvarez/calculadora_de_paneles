@@ -183,6 +183,117 @@ func (c *PVSystemCalculator) Calculate(input SystemDesignInput) SystemDesignResu
 	}
 }
 
+// SlopeAllocation describes how panels and irradiation are distributed per slope.
+type SlopeAllocation struct {
+	PanelCount int
+	MonthlyHSP []float64
+	AvgHSP     float64
+}
+
+// CalculateMultiSlope performs system design with per-slope production calculation.
+// It uses Calculate() for sizing (panels, strings, warnings) with weighted-average HSP,
+// then computes production per slope and aggregates.
+func (c *PVSystemCalculator) CalculateMultiSlope(input SystemDesignInput, slopes []SlopeAllocation) SystemDesignResult {
+	// Use standard Calculate for system sizing (panel count, string config, warnings)
+	result := c.Calculate(input)
+
+	// If only one slope, the standard calculation is already correct
+	if len(slopes) <= 1 {
+		return result
+	}
+
+	// Distribute panels proportionally to each slope's panel count
+	// (caller is responsible for setting PanelCount on each slope)
+	totalPanels := 0
+	for _, s := range slopes {
+		totalPanels += s.PanelCount
+	}
+	if totalPanels == 0 {
+		return result
+	}
+
+	// Recalculate production per slope
+	panelWp := input.Panel.PowerWp
+	actualPowerPerPanel := panelWp / 1000
+
+	ambientTemps := input.MonthlyAmbientTemp
+	if ambientTemps == nil {
+		ambientTemps = make([]float64, 12)
+		for i := range ambientTemps {
+			ambientTemps[i] = 25
+		}
+	}
+	shadingLoss := input.ShadingLoss
+	if shadingLoss == nil {
+		shadingLoss = make([]float64, 12)
+	}
+
+	monthlyProductionKwh := make([]float64, 12)
+	var totalTempLoss float64
+
+	for _, slope := range slopes {
+		if slope.PanelCount == 0 {
+			continue
+		}
+		slopePowerKwp := float64(slope.PanelCount) * actualPowerPerPanel
+
+		for m := 0; m < 12 && m < len(slope.MonthlyHSP); m++ {
+			tCell := calc.CellTemperature(ambientTemps[m], input.Panel.NOCT, 800)
+			tLoss := calc.TemperatureLoss(tCell, input.Panel.TempCoeffPmax)
+			totalTempLoss += tLoss
+
+			monthLossFactor := (1 - tLoss) *
+				(1 - config.DefaultLosses.Soiling) *
+				(1 - config.DefaultLosses.Mismatch) *
+				(1 - config.DefaultLosses.Wiring) *
+				config.DefaultLosses.InverterEfficiency *
+				(1 - shadingLoss[m])
+
+			monthlyProductionKwh[m] += slopePowerKwp * slope.MonthlyHSP[m] * float64(config.DaysInMonth[m]) * monthLossFactor
+		}
+	}
+
+	annualProductionKwh := 0.0
+	for _, v := range monthlyProductionKwh {
+		annualProductionKwh += v
+	}
+
+	avgTempLoss := totalTempLoss / float64(12*len(slopes))
+	avgShadingLoss := 0.0
+	for _, v := range shadingLoss {
+		avgShadingLoss += v
+	}
+	avgShadingLoss /= 12
+
+	yearly25Production := make([]float64, config.SystemDefaults.SystemLifeYears)
+	for y := 0; y < config.SystemDefaults.SystemLifeYears; y++ {
+		degradationFactor := math.Pow(1-config.SystemDefaults.DegradationRatePerYear, float64(y))
+		yearly25Production[y] = annualProductionKwh * degradationFactor
+	}
+
+	totalSystemLoss := 1 - (1-avgTempLoss)*
+		(1-config.DefaultLosses.Soiling)*
+		(1-config.DefaultLosses.Mismatch)*
+		(1-config.DefaultLosses.Wiring)*
+		config.DefaultLosses.InverterEfficiency*
+		(1-avgShadingLoss)
+
+	// Update result with multi-slope production
+	result.MonthlyProductionKwh = monthlyProductionKwh
+	result.AnnualProductionKwh = annualProductionKwh
+	result.Yearly25Production = yearly25Production
+	result.Losses = model.Losses{
+		ShadingPercent:     avgShadingLoss * 100,
+		TemperaturePercent: avgTempLoss * 100,
+		WiringPercent:      config.DefaultLosses.Wiring * 100,
+		InverterPercent:    (1 - config.DefaultLosses.InverterEfficiency) * 100,
+		SoilingPercent:     config.DefaultLosses.Soiling * 100,
+		TotalSystemLoss:    totalSystemLoss * 100,
+	}
+
+	return result
+}
+
 func calculateStringConfiguration(totalPanels int, panel model.PanelCatalog, inverter model.InverterCatalog, warnings *[]string) StringConfig {
 	vocAdjusted := panel.Voc * (1 + (panel.TempCoeffVoc/100)*(-10-25))
 	vmpAdjusted := panel.Vmp * (1 + (panel.TempCoeffVoc/100)*(50-25))

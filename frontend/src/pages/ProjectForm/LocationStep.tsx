@@ -38,8 +38,8 @@ function useLocationUpdater() {
           const irradiation = await calculationApi.fetchIrradiation({
             latitude: lat,
             longitude: lng,
-            tilt: formData.roof.tilt,
-            azimuth: formData.roof.azimuth,
+            tilt: formData.roof.slopes.length > 0 ? formData.roof.slopes[0].tilt : formData.roof.tilt,
+            azimuth: formData.roof.slopes.length > 0 ? formData.roof.slopes[0].azimuth : formData.roof.azimuth,
           });
 
           if (latestRef.current?.lat === point.lat && latestRef.current?.lng === point.lng) {
@@ -73,7 +73,7 @@ function useLocationUpdater() {
         }
       }, 300);
     },
-    [formData.location, formData.roof.tilt, formData.roof.azimuth, setFormData, setIrradiationPreview],
+    [formData.location, formData.roof.tilt, formData.roof.azimuth, formData.roof.slopes, setFormData, setIrradiationPreview],
   );
 
   return updateLocation;

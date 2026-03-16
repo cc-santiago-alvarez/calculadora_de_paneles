@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"fmt"
+	"math"
 	"net/http"
 
 	"github.com/dev13/calculadora-paneles-backend/internal/middleware"
@@ -84,14 +86,50 @@ func (h *CalculationHandler) FullCalculation(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// 1. Get irradiation
-	irradiation, err := h.irradiationService.GetIrradiation(
-		ctx, project.Location.Latitude, project.Location.Longitude,
-		project.Roof.Tilt, project.Roof.Azimuth, 0.2,
-	)
-	if err != nil {
-		middleware.WriteError(w, err)
-		return
+	// 1. Get irradiation per slope
+	slopes := project.Roof.EffectiveSlopes()
+	totalArea := project.Roof.TotalArea()
+
+	type slopeIrrad struct {
+		slope model.Slope
+		irrad *service.IrradiationResult
+	}
+	slopeData := make([]slopeIrrad, len(slopes))
+	irradCache := map[string]*service.IrradiationResult{}
+
+	for i, s := range slopes {
+		key := fmt.Sprintf("%.1f_%.1f", s.Tilt, s.Azimuth)
+		if cached, ok := irradCache[key]; ok {
+			slopeData[i] = slopeIrrad{s, cached}
+		} else {
+			result, err := h.irradiationService.GetIrradiation(
+				ctx, project.Location.Latitude, project.Location.Longitude,
+				s.Tilt, s.Azimuth, 0.2,
+			)
+			if err != nil {
+				middleware.WriteError(w, err)
+				return
+			}
+			irradCache[key] = result
+			slopeData[i] = slopeIrrad{s, result}
+		}
+	}
+
+	// Compute area-weighted average HSP and POA for system sizing
+	weightedHSP := 0.0
+	weightedPOA := make([]float64, 12)
+	weightedGHI := make([]float64, 12)
+	for _, sd := range slopeData {
+		areaFraction := sd.slope.Area / totalArea
+		weightedHSP += sd.irrad.AnnualAvgHSP * areaFraction
+		for m := 0; m < 12; m++ {
+			if m < len(sd.irrad.MonthlyPOA) {
+				weightedPOA[m] += sd.irrad.MonthlyPOA[m] * areaFraction
+			}
+			if m < len(sd.irrad.MonthlyGHI) {
+				weightedGHI[m] += sd.irrad.MonthlyGHI[m] * areaFraction
+			}
+		}
 	}
 
 	// 2. Calculate system design
@@ -111,19 +149,57 @@ func (h *CalculationHandler) FullCalculation(w http.ResponseWriter, r *http.Requ
 		coveragePercentage = 100
 	}
 
-	systemDesign := h.pvCalculator.Calculate(service.SystemDesignInput{
+	designInput := service.SystemDesignInput{
 		DailyConsumptionKwh:   dailyConsumption,
 		MonthlyConsumptionKwh: project.Consumption.Monthly,
-		AvgHSP:                irradiation.AnnualAvgHSP,
-		MonthlyHSP:            irradiation.MonthlyPOA,
+		AvgHSP:                weightedHSP,
+		MonthlyHSP:            weightedPOA,
 		Panel:                 *panel,
 		Inverter:              *inverter,
-		RoofArea:              project.Roof.Area,
+		RoofArea:              totalArea,
 		UsablePercentage:      project.Roof.UsablePercentage,
 		ShadingLoss:           shadingLoss,
 		SystemType:            project.SystemType,
 		CoveragePercentage:    coveragePercentage,
-	})
+	}
+
+	var systemDesign service.SystemDesignResult
+	if len(slopes) <= 1 {
+		systemDesign = h.pvCalculator.Calculate(designInput)
+	} else {
+		// Distribute panels proportionally across slopes
+		singleResult := h.pvCalculator.Calculate(designInput)
+		totalPanels := singleResult.NumberOfPanels
+
+		slopeAllocations := make([]service.SlopeAllocation, len(slopeData))
+		usableArea := totalArea * (project.Roof.UsablePercentage / 100)
+		assignedPanels := 0
+		largestIdx := 0
+		largestArea := 0.0
+
+		for i, sd := range slopeData {
+			slopeUsable := sd.slope.Area * (project.Roof.UsablePercentage / 100)
+			panels := int(math.Floor(slopeUsable / usableArea * float64(totalPanels)))
+			slopeAllocations[i] = service.SlopeAllocation{
+				PanelCount: panels,
+				MonthlyHSP: sd.irrad.MonthlyPOA,
+				AvgHSP:     sd.irrad.AnnualAvgHSP,
+			}
+			assignedPanels += panels
+			if sd.slope.Area > largestArea {
+				largestArea = sd.slope.Area
+				largestIdx = i
+			}
+		}
+		// Assign remainder panels to the largest slope
+		remainder := totalPanels - assignedPanels
+		slopeAllocations[largestIdx].PanelCount += remainder
+
+		systemDesign = h.pvCalculator.CalculateMultiSlope(designInput, slopeAllocations)
+	}
+
+	// Use first slope's irradiation as primary for scenario storage
+	irradiation := slopeData[0].irrad
 
 	// 3. Battery calculation (if off-grid or hybrid)
 	var batteryBank *model.BatteryBank
@@ -182,9 +258,9 @@ func (h *CalculationHandler) FullCalculation(w http.ResponseWriter, r *http.Requ
 		},
 		Irradiation: model.IrradiationData{
 			Source:       irradiation.Source,
-			MonthlyGHI:  irradiation.MonthlyGHI,
-			MonthlyPOA:  irradiation.MonthlyPOA,
-			AnnualAvgHSP: irradiation.AnnualAvgHSP,
+			MonthlyGHI:  weightedGHI,
+			MonthlyPOA:  weightedPOA,
+			AnnualAvgHSP: weightedHSP,
 		},
 		SystemDesign: model.SystemDesign{
 			RequiredPowerKwp:   systemDesign.RequiredPowerKwp,

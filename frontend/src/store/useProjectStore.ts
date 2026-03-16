@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Project, Scenario, Panel, Inverter, IrradiationResult, SystemType, PanelFormat } from '../types';
+import { Project, Scenario, Panel, Inverter, IrradiationResult, SystemType, PanelFormat, RoofType, Slope } from '../types';
 
 interface ProjectFormData {
   name: string;
@@ -18,9 +18,11 @@ interface ProjectFormData {
     connectionType: 'monofasica' | 'bifasica' | 'trifasica';
   };
   roof: {
+    roofType: RoofType;
     area: number;
     azimuth: number;
     tilt: number;
+    slopes: Slope[];
     usablePercentage: number;
     shadingProfile: {
       hasShading: boolean;
@@ -99,9 +101,11 @@ const defaultFormData: ProjectFormData = {
     connectionType: 'monofasica',
   },
   roof: {
+    roofType: 'plana' as RoofType,
     area: 50,
     azimuth: 0,
-    tilt: 10,
+    tilt: 0,
+    slopes: [],
     usablePercentage: 80,
     shadingProfile: {
       hasShading: false,

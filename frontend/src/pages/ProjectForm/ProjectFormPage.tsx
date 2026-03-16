@@ -54,7 +54,10 @@ export default function ProjectFormPage() {
       case 1: // Ubicacion
         return true;
       case 2: // Techo
-        return formData.roof.area > 0;
+        if (formData.roof.roofType === 'plana') {
+          return formData.roof.area > 0;
+        }
+        return formData.roof.slopes.length > 0 && formData.roof.slopes.every((s) => s.area > 0);
       case 3: // Sistema
         return true;
       case 4: // Cobertura

@@ -19,10 +19,20 @@ export interface ShadingProfile {
   monthlyLoss: number[];
 }
 
+export type RoofType = 'plana' | 'una_agua' | 'dos_aguas' | 'cuatro_aguas';
+
+export interface Slope {
+  area: number;
+  tilt: number;
+  azimuth: number;
+}
+
 export interface Roof {
+  roofType: RoofType;
   area: number;
   azimuth: number;
   tilt: number;
+  slopes: Slope[];
   usablePercentage: number;
   shadingProfile: ShadingProfile;
 }

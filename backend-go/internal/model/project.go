@@ -27,12 +27,41 @@ type ShadingProfile struct {
 	MonthlyLoss [12]float64 `json:"monthlyLoss" bson:"monthlyLoss"`
 }
 
+type Slope struct {
+	Area    float64 `json:"area" bson:"area"`
+	Tilt    float64 `json:"tilt" bson:"tilt"`
+	Azimuth float64 `json:"azimuth" bson:"azimuth"`
+}
+
 type Roof struct {
+	RoofType         string         `json:"roofType" bson:"roofType"`
 	Area             float64        `json:"area" bson:"area"`
 	Azimuth          float64        `json:"azimuth" bson:"azimuth"`
 	Tilt             float64        `json:"tilt" bson:"tilt"`
+	Slopes           []Slope        `json:"slopes,omitempty" bson:"slopes,omitempty"`
 	UsablePercentage float64        `json:"usablePercentage" bson:"usablePercentage"`
 	ShadingProfile   ShadingProfile `json:"shadingProfile" bson:"shadingProfile"`
+}
+
+// EffectiveSlopes returns the resolved slopes for calculation.
+// For legacy documents or "plana" type without slopes, it returns a single slope from the top-level fields.
+func (r *Roof) EffectiveSlopes() []Slope {
+	if len(r.Slopes) > 0 {
+		return r.Slopes
+	}
+	return []Slope{{Area: r.Area, Tilt: r.Tilt, Azimuth: r.Azimuth}}
+}
+
+// TotalArea returns the sum of all slope areas, or the top-level area for legacy/plana roofs.
+func (r *Roof) TotalArea() float64 {
+	if len(r.Slopes) == 0 {
+		return r.Area
+	}
+	total := 0.0
+	for _, s := range r.Slopes {
+		total += s.Area
+	}
+	return total
 }
 
 type PanelOverride struct {
