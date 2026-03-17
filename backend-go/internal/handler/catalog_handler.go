@@ -87,6 +87,8 @@ func (h *CatalogHandler) GetInverters(w http.ResponseWriter, r *http.Request) {
 	}
 	if hasBat := q.Get("hasBattery"); hasBat == "true" {
 		filter["hasBatteryPort"] = true
+	} else if hasBat == "false" {
+		filter["hasBatteryPort"] = false
 	}
 
 	inverters, err := h.catalogRepo.FindInverters(r.Context(), filter)

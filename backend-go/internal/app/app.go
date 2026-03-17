@@ -135,8 +135,10 @@ func seedCatalog(ctx context.Context, catalogRepo *repository.CatalogRepo) {
 			IsActive: true,
 		}
 	}
-	if err := catalogRepo.SeedPanels(ctx, panels); err != nil {
-		log.Printf("Warning: failed to seed panels: %v", err)
+	if n, err := catalogRepo.UpsertPanels(ctx, panels); err != nil {
+		log.Printf("Warning: failed to upsert panels: %v", err)
+	} else if n > 0 {
+		log.Printf("Catalog: upserted %d panels", n)
 	}
 
 	inverters := make([]model.InverterCatalog, len(data.DefaultInverters))
@@ -162,7 +164,9 @@ func seedCatalog(ctx context.Context, catalogRepo *repository.CatalogRepo) {
 			IsActive:        true,
 		}
 	}
-	if err := catalogRepo.SeedInverters(ctx, inverters); err != nil {
-		log.Printf("Warning: failed to seed inverters: %v", err)
+	if n, err := catalogRepo.UpsertInverters(ctx, inverters); err != nil {
+		log.Printf("Warning: failed to upsert inverters: %v", err)
+	} else if n > 0 {
+		log.Printf("Catalog: upserted %d inverters", n)
 	}
 }

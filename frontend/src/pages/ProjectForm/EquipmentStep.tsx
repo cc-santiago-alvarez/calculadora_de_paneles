@@ -27,8 +27,13 @@ export default function EquipmentStep() {
     if (formData.recommendedInverterKw > 0) {
       inverterParams.minPower = String(Math.floor(formData.recommendedInverterKw * 0.8));
     }
-    if (formData.systemType === 'off-grid' || formData.systemType === 'hybrid') {
-      inverterParams.hasBattery = 'true';
+    const systemToInverterType: Record<string, string> = {
+      'on-grid': 'string',
+      'off-grid': 'off-grid',
+      'hybrid': 'hybrid',
+    };
+    if (formData.systemType && systemToInverterType[formData.systemType]) {
+      inverterParams.type = systemToInverterType[formData.systemType];
     }
     const inverterPromise = catalogApi.getInverters(inverterParams).then(setInverters);
 
