@@ -77,8 +77,13 @@ func (h *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		SystemType         string  `json:"systemType"`
 		CoveragePercentage float64 `json:"coveragePercentage"`
 		Equipment  struct {
-			PanelID       string `json:"panelId" validate:"required"`
-			InverterID    string `json:"inverterId" validate:"required"`
+			PanelID            string `json:"panelId" validate:"required"`
+			InverterID         string `json:"inverterId" validate:"required"`
+			PanelConfiguration *struct {
+				ConnectionType  string `json:"connectionType"`
+				PanelsPerString int    `json:"panelsPerString"`
+				NumberOfStrings int    `json:"numberOfStrings"`
+			} `json:"panelConfiguration,omitempty"`
 			PanelOverride *struct {
 				Watts float64 `json:"watts"`
 				Area  float64 `json:"area"`
@@ -142,6 +147,27 @@ func (h *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 			PanelID:    panelID,
 			InverterID: inverterID,
 		},
+	}
+
+	if input.Equipment.PanelConfiguration != nil {
+		pc := input.Equipment.PanelConfiguration
+		connectionType := pc.ConnectionType
+		if connectionType == "" {
+			connectionType = "serie"
+		}
+		panelsPerString := pc.PanelsPerString
+		if panelsPerString < 1 {
+			panelsPerString = 1
+		}
+		numberOfStrings := pc.NumberOfStrings
+		if numberOfStrings < 1 {
+			numberOfStrings = 1
+		}
+		project.Equipment.PanelConfiguration = &model.PanelConfiguration{
+			ConnectionType:  connectionType,
+			PanelsPerString: panelsPerString,
+			NumberOfStrings: numberOfStrings,
+		}
 	}
 
 	if input.Equipment.PanelOverride != nil {

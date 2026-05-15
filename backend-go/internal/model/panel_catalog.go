@@ -26,6 +26,7 @@ type PanelCatalog struct {
 	PanelDimensions Dimensions   `json:"dimensions,omitempty" bson:"dimensions,omitempty"`
 	Warranty       int           `json:"warranty" bson:"warranty"`
 	CostCOP        float64       `json:"costCOP" bson:"costCOP"`
+	Format         string        `json:"format,omitempty" bson:"format,omitempty"`
 	IsActive       bool          `json:"isActive" bson:"isActive"`
 	Source         string        `json:"source,omitempty" bson:"source,omitempty"`
 	CecID          string        `json:"cecId,omitempty" bson:"cecId,omitempty"`

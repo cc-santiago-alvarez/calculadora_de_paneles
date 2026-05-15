@@ -6,6 +6,8 @@ import MapPage from './pages/MapView/MapPage';
 import ResultsPage from './pages/Results/ResultsPage';
 import ComparatorPage from './pages/Comparator/ComparatorPage';
 import ReportPage from './pages/Report/ReportPage';
+import PanelCatalogPage from './pages/PanelCatalog/PanelCatalogPage';
+import InverterCatalogPage from './pages/InverterCatalog/InverterCatalogPage';
 
 export default function App() {
   return (
@@ -14,6 +16,8 @@ export default function App() {
         <Route element={<AppShell />}>
           <Route path="/" element={<ProjectsListPage />} />
           <Route path="/new" element={<ProjectFormPage />} />
+          <Route path="/panels" element={<PanelCatalogPage />} />
+          <Route path="/inverters" element={<InverterCatalogPage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/results" element={<ResultsPage />} />
           <Route path="/compare" element={<ComparatorPage />} />

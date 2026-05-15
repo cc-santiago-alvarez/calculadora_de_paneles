@@ -69,10 +69,21 @@ type PanelOverride struct {
 	Area  float64 `json:"area,omitempty" bson:"area,omitempty"`
 }
 
+// PanelConfiguration describes how the panels are wired together.
+// ConnectionType is "serie", "paralelo" or "mixto".
+// PanelsPerString (S) are wired in series; NumberOfStrings (P) strings are wired in parallel.
+type PanelConfiguration struct {
+	ConnectionType  string `json:"connectionType" bson:"connectionType"`
+	PanelsPerString int    `json:"panelsPerString" bson:"panelsPerString"`
+	NumberOfStrings int    `json:"numberOfStrings" bson:"numberOfStrings"`
+}
+
 type Equipment struct {
-	PanelID       bson.ObjectID  `json:"panelId" bson:"panelId"`
-	InverterID    bson.ObjectID  `json:"inverterId" bson:"inverterId"`
-	PanelOverride *PanelOverride `json:"panelOverride,omitempty" bson:"panelOverride,omitempty"`
+	PanelID            bson.ObjectID       `json:"panelId" bson:"panelId"`
+	InverterID         bson.ObjectID       `json:"inverterId" bson:"inverterId"`
+	ChargeControllerID *bson.ObjectID      `json:"chargeControllerId,omitempty" bson:"chargeControllerId,omitempty"`
+	PanelConfiguration *PanelConfiguration `json:"panelConfiguration,omitempty" bson:"panelConfiguration,omitempty"`
+	PanelOverride      *PanelOverride      `json:"panelOverride,omitempty" bson:"panelOverride,omitempty"`
 }
 
 type Project struct {

@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { formatCOP, formatNumber } from '../../utils/format';
-import { PANEL_FORMATS } from './panelFormats';
 
 const SYSTEM_EFFICIENCY = (1 - 0.03) * (1 - 0.02) * (1 - 0.02) * 0.96;
 
@@ -88,41 +87,58 @@ function CoverageSidebar() {
   const dailyConsumption = annualConsumption / 365;
   const adjustedDaily = dailyConsumption * coverageDecimal;
   const requiredPowerKwp = adjustedDaily / avgHSP / SYSTEM_EFFICIENCY;
-  const recommendedInverterKw = Math.ceil(requiredPowerKwp * 1.1);
-
-  const selectedFormat = PANEL_FORMATS.find((f) => f.key === formData.panelFormat) ?? PANEL_FORMATS[0];
-  const numPanels = Math.ceil((requiredPowerKwp * 1000) / selectedFormat.watts);
-  const roofNeeded = numPanels * selectedFormat.area * 1.15;
 
   return (
     <SidebarCard title="Dimensionamiento">
       <SidebarItem label={`Consumo a cubrir (${formData.coveragePercentage}%)`} value={formatNumber(annualConsumption * coverageDecimal)} unit="kWh/año" />
       <SidebarItem label="HSP Promedio" value={avgHSP.toFixed(2)} unit="h/día" />
       <SidebarItem label="Potencia Requerida" value={requiredPowerKwp.toFixed(2)} unit="kWp" />
-      <div className="my-2 border-t border-[var(--color-border-default)]" />
-      <SidebarItem label={`Paneles (${selectedFormat.label} ${selectedFormat.watts}W)`} value={String(numPanels)} unit="unidades" />
-      <SidebarItem label="Area de Techo" value={`~${roofNeeded.toFixed(0)}`} unit="m²" />
-      <SidebarItem label="Inversor Recomendado" value={`≥${recommendedInverterKw}`} unit="kW" />
+    </SidebarCard>
+  );
+}
+
+function PanelConfigSidebar() {
+  const { formData, panels } = useProjectStore();
+  const cfg = formData.equipment.panelConfiguration;
+  const selectedPanel = panels.find((p) => p._id === formData.equipment.panelId);
+
+  if (!selectedPanel) {
+    return (
+      <SidebarCard title="Configuracion de Paneles">
+        <p className="text-xs text-fg-muted py-2">Selecciona un panel para ver los valores del arreglo.</p>
+      </SidebarCard>
+    );
+  }
+
+  const s = cfg.panelsPerString;
+  const p = cfg.numberOfStrings;
+  const connectionLabel: Record<string, string> = {
+    serie: 'Serie',
+    paralelo: 'Paralelo',
+    mixto: 'Mixto serie-paralelo',
+  };
+
+  return (
+    <SidebarCard title="Configuracion de Paneles">
+      <SidebarItem label="Conexion" value={connectionLabel[cfg.connectionType] ?? cfg.connectionType} />
+      <SidebarItem label="Voc total" value={(selectedPanel.voc * s).toFixed(1)} unit="V" />
+      <SidebarItem label="Vmp total" value={(selectedPanel.vmp * s).toFixed(1)} unit="V" />
+      <SidebarItem label="Isc total" value={(selectedPanel.isc * p).toFixed(1)} unit="A" />
+      <SidebarItem label="Imp total" value={(selectedPanel.imp * p).toFixed(1)} unit="A" />
+      <SidebarItem label="Potencia total" value={((selectedPanel.powerWp * s * p) / 1000).toFixed(2)} unit="kWp" />
+      <SidebarItem label="Total de paneles" value={String(s * p)} unit="unidades" />
     </SidebarCard>
   );
 }
 
 function EquipmentSidebar() {
-  const { formData, panels, inverters, irradiationPreview } = useProjectStore();
-  const avgHSP = irradiationPreview?.annualAvgHSP ?? 4.5;
-
-  const annualConsumption = formData.consumption.monthly.reduce((sum, v) => sum + v, 0);
-  const coverageDecimal = formData.coveragePercentage / 100;
-  const dailyConsumption = annualConsumption / 365;
-  const adjustedDaily = dailyConsumption * coverageDecimal;
-  const requiredPowerKwp = adjustedDaily / avgHSP / SYSTEM_EFFICIENCY;
+  const { formData, panels, inverters } = useProjectStore();
 
   const selectedPanel = panels.find((p) => p._id === formData.equipment.panelId);
   const selectedInverter = inverters.find((i) => i._id === formData.equipment.inverterId);
 
-  const selectedFormat = PANEL_FORMATS.find((f) => f.key === formData.panelFormat) ?? PANEL_FORMATS[0];
-  const panelWatts = selectedPanel?.powerWp ?? selectedFormat.watts;
-  const numPanels = Math.ceil((requiredPowerKwp * 1000) / panelWatts);
+  const cfg = formData.equipment.panelConfiguration;
+  const numPanels = cfg.panelsPerString * cfg.numberOfStrings;
 
   const panelTotal = selectedPanel ? numPanels * selectedPanel.costCOP : 0;
   const inverterTotal = selectedInverter ? selectedInverter.costCOP : 0;
@@ -159,8 +175,9 @@ function EquipmentSidebar() {
 const SIDEBAR_MAP: Record<number, React.FC> = {
   0: ConsumptionSidebar,
   1: LocationSidebar,
-  4: CoverageSidebar,
-  5: EquipmentSidebar,
+  2: CoverageSidebar,
+  5: PanelConfigSidebar,
+  6: EquipmentSidebar,
 };
 
 export default function StepSidebar({ step }: { step: number }) {

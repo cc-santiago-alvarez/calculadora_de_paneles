@@ -86,6 +86,15 @@ func (h *CalculationHandler) FullCalculation(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	var chargeController *model.ChargeControllerCatalog
+	if project.Equipment.ChargeControllerID != nil {
+		chargeController, err = h.catalogRepo.FindChargeControllerByID(ctx, *project.Equipment.ChargeControllerID)
+		if err != nil || chargeController == nil {
+			middleware.WriteError(w, middleware.NewAppError(404, "Regulador de carga no encontrado en el catálogo"))
+			return
+		}
+	}
+
 	// 1. Get irradiation per slope
 	slopes := project.Roof.EffectiveSlopes()
 	totalArea := project.Roof.TotalArea()
@@ -163,6 +172,15 @@ func (h *CalculationHandler) FullCalculation(w http.ResponseWriter, r *http.Requ
 		CoveragePercentage:    coveragePercentage,
 	}
 
+	// A manually defined panel configuration overrides the automatic string sizing.
+	if pc := project.Equipment.PanelConfiguration; pc != nil {
+		designInput.PanelConfig = &service.PanelConfigInput{
+			ConnectionType:  pc.ConnectionType,
+			PanelsPerString: pc.PanelsPerString,
+			NumberOfStrings: pc.NumberOfStrings,
+		}
+	}
+
 	var systemDesign service.SystemDesignResult
 	if len(slopes) <= 1 {
 		systemDesign = h.pvCalculator.Calculate(designInput)
@@ -223,16 +241,21 @@ func (h *CalculationHandler) FullCalculation(w http.ResponseWriter, r *http.Requ
 	}
 
 	// 4. Financial analysis
+	chargeControllerCost := 0.0
+	if chargeController != nil {
+		chargeControllerCost = chargeController.CostCOP
+	}
 	financial := h.financialModel.Analyze(service.FinancialInput{
-		InstalledKwp:        systemDesign.ActualPowerKwp,
-		AnnualProductionKwh: systemDesign.AnnualProductionKwh,
-		MonthlyProductionKwh: systemDesign.MonthlyProductionKwh,
-		TariffPerKwh:        project.Consumption.TariffPerKwh,
-		Estrato:             project.Consumption.Estrato,
-		PanelCostCOP:        panel.CostCOP,
-		NumberOfPanels:      systemDesign.NumberOfPanels,
-		InverterCostCOP:     inverter.CostCOP,
-		BatteryCostCOP:      batteryCost,
+		InstalledKwp:            systemDesign.ActualPowerKwp,
+		AnnualProductionKwh:     systemDesign.AnnualProductionKwh,
+		MonthlyProductionKwh:    systemDesign.MonthlyProductionKwh,
+		TariffPerKwh:            project.Consumption.TariffPerKwh,
+		Estrato:                 project.Consumption.Estrato,
+		PanelCostCOP:            panel.CostCOP,
+		NumberOfPanels:          systemDesign.NumberOfPanels,
+		InverterCostCOP:         inverter.CostCOP,
+		BatteryCostCOP:          batteryCost,
+		ChargeControllerCostCOP: chargeControllerCost,
 	})
 
 	// 5. Save scenario
@@ -294,6 +317,14 @@ func (h *CalculationHandler) FullCalculation(w http.ResponseWriter, r *http.Requ
 			LCOE:                financial.LCOE,
 		},
 		Losses: systemDesign.Losses,
+	}
+
+	if chargeController != nil {
+		scenario.InputSnapshot["chargeController"] = map[string]interface{}{
+			"manufacturer":      chargeController.Manufacturer,
+			"model":             chargeController.Model,
+			"maxChargeCurrentA": chargeController.MaxChargeCurrentA,
+		}
 	}
 
 	if err := h.scenarioRepo.Create(ctx, scenario); err != nil {

@@ -37,9 +37,19 @@ export interface Roof {
   shadingProfile: ShadingProfile;
 }
 
+export type PanelConnectionType = 'serie' | 'paralelo' | 'mixto';
+
+export interface PanelConfiguration {
+  connectionType: PanelConnectionType;
+  panelsPerString: number; // S - paneles en serie por cadena
+  numberOfStrings: number; // P - cadenas en paralelo
+}
+
 export interface Equipment {
   panelId: string;
   inverterId: string;
+  chargeControllerId?: string;
+  panelConfiguration: PanelConfiguration;
   panelOverride?: {
     watts: number;
     area: number;
@@ -78,7 +88,13 @@ export interface Panel {
   vmp: number;
   imp: number;
   tempCoeffPmax: number;
+  tempCoeffVoc: number;
+  NOCT: number;
+  weight?: number;
+  warranty?: number;
   costCOP: number;
+  format?: string;
+  isActive?: boolean;
   dimensions: { length: number; width: number };
 }
 
@@ -88,14 +104,36 @@ export interface Inverter {
   model: string;
   type: string;
   ratedPowerKw: number;
+  maxDCPowerKw: number;
   efficiency: number;
   mpptCount: number;
   mpptVoltageMin: number;
   mpptVoltageMax: number;
   maxInputVoltage: number;
   maxInputCurrent: number;
+  outputVoltage: number;
+  outputPhases: number;
   hasBatteryPort: boolean;
+  weight?: number;
+  warranty?: number;
   costCOP: number;
+  isActive?: boolean;
+}
+
+export interface ChargeController {
+  _id: string;
+  manufacturer: string;
+  model: string;
+  type: string;
+  ratedPowerW: number;
+  maxPVVoltage: number;
+  maxPVCurrent: number;
+  batteryVoltages: number[];
+  maxChargeCurrentA: number;
+  efficiency: number;
+  costCOP: number;
+  warranty: number;
+  weight: number;
 }
 
 export interface Scenario {

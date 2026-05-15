@@ -8,11 +8,15 @@ import {
   ChartBarIcon,
   ScaleIcon,
   DocumentTextIcon,
+  RectangleStackIcon,
+  CpuChipIcon,
 } from '@heroicons/react/24/outline';
 
 const navItems = [
   { path: '/', label: 'Proyectos', icon: FolderIcon },
   { path: '/new', label: 'Nuevo Proyecto', icon: PlusCircleIcon },
+  { path: '/panels', label: 'Paneles', icon: RectangleStackIcon },
+  { path: '/inverters', label: 'Inversores', icon: CpuChipIcon },
   { path: '/map', label: 'Mapa', icon: MapIcon },
   { path: '/results', label: 'Resultados', icon: ChartBarIcon },
   { path: '/compare', label: 'Comparador', icon: ScaleIcon },

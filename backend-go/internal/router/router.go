@@ -65,8 +65,21 @@ func New(
 	r.Post("/api/v1/financial/analyze", financialHandler.AnalyzeFinancial)
 
 	// Catalog
-	r.Get("/api/v1/catalog/panels", catalogHandler.GetPanels)
-	r.Get("/api/v1/catalog/inverters", catalogHandler.GetInverters)
+	r.Route("/api/v1/catalog/panels", func(r chi.Router) {
+		r.Get("/", catalogHandler.GetPanels)
+		r.Post("/", catalogHandler.CreatePanel)
+		r.Get("/{id}", catalogHandler.GetPanelByID)
+		r.Put("/{id}", catalogHandler.UpdatePanel)
+		r.Delete("/{id}", catalogHandler.DeletePanel)
+	})
+	r.Route("/api/v1/catalog/inverters", func(r chi.Router) {
+		r.Get("/", catalogHandler.GetInverters)
+		r.Post("/", catalogHandler.CreateInverter)
+		r.Get("/{id}", catalogHandler.GetInverterByID)
+		r.Put("/{id}", catalogHandler.UpdateInverter)
+		r.Delete("/{id}", catalogHandler.DeleteInverter)
+	})
+	r.Get("/api/v1/catalog/charge-controllers", catalogHandler.GetChargeControllers)
 	r.Post("/api/v1/catalog/sync", catalogHandler.SyncCEC)
 
 	// Reports

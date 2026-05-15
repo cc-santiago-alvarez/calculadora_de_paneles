@@ -72,6 +72,16 @@ func (m *MongoDB) EnsureIndexes(ctx context.Context) error {
 		return fmt.Errorf("failed to create inverter catalog index: %w", err)
 	}
 
+	// ChargeControllerCatalog: unique manufacturer+model
+	ccCol := m.Database.Collection("chargecontrollercatalogs")
+	_, err = ccCol.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.D{{Key: "manufacturer", Value: 1}, {Key: "model", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create charge controller catalog index: %w", err)
+	}
+
 	return nil
 }
 

@@ -22,6 +22,16 @@ type SystemDesignInput struct {
 	ShadingLoss           []float64 // nil = no shading
 	SystemType            string
 	CoveragePercentage    float64 // 0-100, defaults to 100 if <= 0
+	PanelConfig           *PanelConfigInput // nil = automatic string configuration
+}
+
+// PanelConfigInput carries a user-defined panel wiring that overrides the
+// automatically derived string configuration. PanelsPerString (S) are wired in
+// series; NumberOfStrings (P) strings are wired in parallel.
+type PanelConfigInput struct {
+	ConnectionType  string
+	PanelsPerString int
+	NumberOfStrings int
 }
 
 type StringConfig struct {
@@ -68,17 +78,30 @@ func (c *PVSystemCalculator) Calculate(input SystemDesignInput) SystemDesignResu
 	panelWp := input.Panel.PowerWp
 	panelAreaM2 := input.Panel.Area
 
-	numberOfPanels := int(math.Ceil(requiredPowerKwp * 1000 / panelWp))
-
 	usableArea := input.RoofArea * (input.UsablePercentage / 100)
 	maxPanelsByRoof := int(math.Floor(usableArea / (panelAreaM2 * config.SystemDefaults.PanelSpacingFactor)))
 
-	if numberOfPanels > maxPanelsByRoof {
-		warnings = append(warnings, fmt.Sprintf(
-			"Se requieren %d paneles pero solo caben %d en el techo disponible. Se ajusta al máximo.",
-			numberOfPanels, maxPanelsByRoof,
-		))
-		numberOfPanels = maxPanelsByRoof
+	manualConfig := input.PanelConfig != nil
+	var numberOfPanels int
+
+	if manualConfig {
+		// The user manually defined the panel wiring; it drives the calculation.
+		numberOfPanels = input.PanelConfig.PanelsPerString * input.PanelConfig.NumberOfStrings
+		if maxPanelsByRoof > 0 && numberOfPanels > maxPanelsByRoof {
+			warnings = append(warnings, fmt.Sprintf(
+				"La configuración manual usa %d paneles pero solo caben %d en el techo disponible.",
+				numberOfPanels, maxPanelsByRoof,
+			))
+		}
+	} else {
+		numberOfPanels = int(math.Ceil(requiredPowerKwp * 1000 / panelWp))
+		if numberOfPanels > maxPanelsByRoof {
+			warnings = append(warnings, fmt.Sprintf(
+				"Se requieren %d paneles pero solo caben %d en el techo disponible. Se ajusta al máximo.",
+				numberOfPanels, maxPanelsByRoof,
+			))
+			numberOfPanels = maxPanelsByRoof
+		}
 	}
 
 	if numberOfPanels < 1 {
@@ -89,7 +112,13 @@ func (c *PVSystemCalculator) Calculate(input SystemDesignInput) SystemDesignResu
 	actualPowerKwp := float64(numberOfPanels) * panelWp / 1000
 	roofUtilization := float64(numberOfPanels) * panelAreaM2 * config.SystemDefaults.PanelSpacingFactor / input.RoofArea * 100
 
-	stringConfig := calculateStringConfiguration(numberOfPanels, input.Panel, input.Inverter, &warnings)
+	var stringConfig StringConfig
+	if manualConfig {
+		stringConfig = manualStringConfiguration(*input.PanelConfig, input.Panel)
+		validateStringConfigAgainstInverter(*input.PanelConfig, input.Panel, input.Inverter, &warnings)
+	} else {
+		stringConfig = calculateStringConfiguration(numberOfPanels, input.Panel, input.Inverter, &warnings)
+	}
 
 	inverterRatio := input.Inverter.RatedPowerKw / actualPowerKwp
 	if inverterRatio < 0.8 {
@@ -333,5 +362,64 @@ func calculateStringConfiguration(totalPanels int, panel model.PanelCatalog, inv
 		NumberOfStrings: numberOfStrings,
 		StringVoltage:   math.Round(stringVoltage*100) / 100,
 		StringCurrent:   math.Round(stringCurrent*100) / 100,
+	}
+}
+
+// manualStringConfiguration builds the array electrical values from a user-defined
+// panel wiring: panels in series add voltage, strings in parallel add current.
+func manualStringConfiguration(cfg PanelConfigInput, panel model.PanelCatalog) StringConfig {
+	s := cfg.PanelsPerString
+	if s < 1 {
+		s = 1
+	}
+	p := cfg.NumberOfStrings
+	if p < 1 {
+		p = 1
+	}
+	stringVoltage := float64(s) * panel.Vmp
+	stringCurrent := float64(p) * panel.Imp
+
+	return StringConfig{
+		PanelsPerString: s,
+		NumberOfStrings: p,
+		StringVoltage:   math.Round(stringVoltage*100) / 100,
+		StringCurrent:   math.Round(stringCurrent*100) / 100,
+	}
+}
+
+// validateStringConfigAgainstInverter emits warnings when a manual panel
+// configuration exceeds the inverter's voltage or current limits.
+func validateStringConfigAgainstInverter(cfg PanelConfigInput, panel model.PanelCatalog, inverter model.InverterCatalog, warnings *[]string) {
+	s := float64(cfg.PanelsPerString)
+	p := float64(cfg.NumberOfStrings)
+
+	// Voc at -10°C (worst cold case) must stay below the inverter max input voltage.
+	vocCold := panel.Voc * (1 + (panel.TempCoeffVoc/100)*(-10-25))
+	arrayVocCold := s * vocCold
+	if inverter.MaxInputVoltage > 0 && arrayVocCold > inverter.MaxInputVoltage {
+		*warnings = append(*warnings, fmt.Sprintf(
+			"El voltaje del string (%.0fV a -10°C) supera el máximo del inversor (%.0fV). Reduce los paneles en serie.",
+			arrayVocCold, inverter.MaxInputVoltage,
+		))
+	}
+
+	// Vmp at 50°C (worst hot case) should stay within the MPPT range.
+	vmpHot := panel.Vmp * (1 + (panel.TempCoeffVoc/100)*(50-25))
+	arrayVmpHot := s * vmpHot
+	if inverter.MPPTVoltageMin > 0 && arrayVmpHot < inverter.MPPTVoltageMin {
+		*warnings = append(*warnings, fmt.Sprintf(
+			"El voltaje del string (%.0fV a 50°C) está por debajo del rango MPPT del inversor (%.0fV). Aumenta los paneles en serie.",
+			arrayVmpHot, inverter.MPPTVoltageMin,
+		))
+	}
+
+	// Total array current = parallel strings × Isc must stay below the inverter input current.
+	maxCurrent := inverter.MaxInputCurrent * float64(inverter.MPPTCount)
+	arrayCurrent := p * panel.Isc
+	if maxCurrent > 0 && arrayCurrent > maxCurrent {
+		*warnings = append(*warnings, fmt.Sprintf(
+			"La corriente del arreglo (%.1fA) supera la entrada máxima del inversor (%.1fA). Reduce las cadenas en paralelo.",
+			arrayCurrent, maxCurrent,
+		))
 	}
 }

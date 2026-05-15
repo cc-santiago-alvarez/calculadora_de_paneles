@@ -19,7 +19,8 @@ type FinancialInput struct {
 	PanelCostCOP        float64   `json:"panelCostCOP"`
 	NumberOfPanels      int       `json:"numberOfPanels"`
 	InverterCostCOP     float64   `json:"inverterCostCOP"`
-	BatteryCostCOP      float64   `json:"batteryCostCOP,omitempty"`
+	BatteryCostCOP          float64   `json:"batteryCostCOP,omitempty"`
+	ChargeControllerCostCOP float64   `json:"chargeControllerCostCOP,omitempty"`
 	SystemLifeYears     int       `json:"systemLifeYears,omitempty"`
 	DiscountRate        float64   `json:"discountRate,omitempty"`
 	DegradationRate     float64   `json:"degradationRate,omitempty"`
@@ -27,11 +28,12 @@ type FinancialInput struct {
 }
 
 type CostBreakdown struct {
-	Panels    float64 `json:"panels"`
-	Inverter  float64 `json:"inverter"`
-	Batteries float64 `json:"batteries"`
-	BOS       float64 `json:"bos"`
-	Labor     float64 `json:"labor"`
+	Panels           float64 `json:"panels"`
+	Inverter         float64 `json:"inverter"`
+	Batteries        float64 `json:"batteries"`
+	ChargeController float64 `json:"chargeController"`
+	BOS              float64 `json:"bos"`
+	Labor            float64 `json:"labor"`
 }
 
 type FinancialResult struct {
@@ -76,7 +78,8 @@ func (f *FinancialModel) Analyze(input FinancialInput) FinancialResult {
 	panelsCost := input.PanelCostCOP * float64(input.NumberOfPanels)
 	inverterCost := input.InverterCostCOP
 	batteriesCost := input.BatteryCostCOP
-	equipmentCost := panelsCost + inverterCost + batteriesCost
+	chargeControllerCost := input.ChargeControllerCostCOP
+	equipmentCost := panelsCost + inverterCost + batteriesCost + chargeControllerCost
 	bosCost := equipmentCost * config.FinancialDefaults.BOSCostPercent
 	laborCost := equipmentCost * config.FinancialDefaults.LaborCostPercent
 	totalInstallationCost := equipmentCost + bosCost + laborCost
@@ -125,11 +128,12 @@ func (f *FinancialModel) Analyze(input FinancialInput) FinancialResult {
 	return FinancialResult{
 		InstallationCostCOP: totalInstallationCost,
 		CostBreakdown: CostBreakdown{
-			Panels:    panelsCost,
-			Inverter:  inverterCost,
-			Batteries: batteriesCost,
-			BOS:       bosCost,
-			Labor:     laborCost,
+			Panels:           panelsCost,
+			Inverter:         inverterCost,
+			Batteries:        batteriesCost,
+			ChargeController: chargeControllerCost,
+			BOS:              bosCost,
+			Labor:            laborCost,
 		},
 		MonthlySavingsCOP:   monthlySavingsCOP,
 		AnnualSavingsCOP:    annualSavingsCOP,

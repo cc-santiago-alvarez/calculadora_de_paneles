@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Project, Scenario, Panel, Inverter, IrradiationResult, SystemType, PanelFormat, RoofType, Slope } from '../types';
+import { Project, Scenario, Panel, Inverter, ChargeController, IrradiationResult, SystemType, PanelFormat, RoofType, Slope, PanelConfiguration } from '../types';
 
 interface ProjectFormData {
   name: string;
@@ -36,6 +36,8 @@ interface ProjectFormData {
   equipment: {
     panelId: string;
     inverterId: string;
+    chargeControllerId: string;
+    panelConfiguration: PanelConfiguration;
   };
 }
 
@@ -58,8 +60,10 @@ interface ProjectStore {
   // Catalogs
   panels: Panel[];
   inverters: Inverter[];
+  chargeControllers: ChargeController[];
   setPanels: (panels: Panel[]) => void;
   setInverters: (inverters: Inverter[]) => void;
+  setChargeControllers: (controllers: ChargeController[]) => void;
 
   // Irradiation preview
   irradiationPreview: IrradiationResult | null;
@@ -119,6 +123,12 @@ const defaultFormData: ProjectFormData = {
   equipment: {
     panelId: '',
     inverterId: '',
+    chargeControllerId: '',
+    panelConfiguration: {
+      connectionType: 'serie',
+      panelsPerString: 1,
+      numberOfStrings: 1,
+    },
   },
 };
 
@@ -140,8 +150,10 @@ export const useProjectStore = create<ProjectStore>((set) => ({
 
   panels: [],
   inverters: [],
+  chargeControllers: [],
   setPanels: (panels) => set({ panels }),
   setInverters: (inverters) => set({ inverters }),
+  setChargeControllers: (chargeControllers) => set({ chargeControllers }),
 
   irradiationPreview: null,
   setIrradiationPreview: (data) => set({ irradiationPreview: data }),

@@ -18,6 +18,9 @@ var defaultPanelsJSON []byte
 //go:embed default-inverters.json
 var defaultInvertersJSON []byte
 
+//go:embed default-charge-controllers.json
+var defaultChargeControllersJSON []byte
+
 // IDEAMZone represents a zone entry from ideam-zones.json.
 type IDEAMZone struct {
 	AnnualAvgGHI float64    `json:"annualAvgGHI"`
@@ -89,11 +92,28 @@ type InverterEntry struct {
 	CostCOP         float64 `json:"costCOP"`
 }
 
+// ChargeControllerEntry for default-charge-controllers.json.
+type ChargeControllerEntry struct {
+	Manufacturer      string  `json:"manufacturer"`
+	Model             string  `json:"model"`
+	Type              string  `json:"type"`
+	RatedPowerW       float64 `json:"ratedPowerW"`
+	MaxPVVoltage      float64 `json:"maxPVVoltage"`
+	MaxPVCurrent      float64 `json:"maxPVCurrent"`
+	BatteryVoltages   []int   `json:"batteryVoltages"`
+	MaxChargeCurrentA float64 `json:"maxChargeCurrentA"`
+	Efficiency        float64 `json:"efficiency"`
+	CostCOP           float64 `json:"costCOP"`
+	Warranty          int     `json:"warranty"`
+	Weight            float64 `json:"weight"`
+}
+
 var (
-	IDEAMZones       map[string]IDEAMZone
-	ColombianTariffs map[string]TariffEntry
-	DefaultPanels    []PanelEntry
-	DefaultInverters []InverterEntry
+	IDEAMZones              map[string]IDEAMZone
+	ColombianTariffs        map[string]TariffEntry
+	DefaultPanels           []PanelEntry
+	DefaultInverters        []InverterEntry
+	DefaultChargeControllers []ChargeControllerEntry
 )
 
 func init() {
@@ -115,5 +135,9 @@ func init() {
 
 	if err := json.Unmarshal(defaultInvertersJSON, &DefaultInverters); err != nil {
 		log.Fatalf("failed to parse default-inverters.json: %v", err)
+	}
+
+	if err := json.Unmarshal(defaultChargeControllersJSON, &DefaultChargeControllers); err != nil {
+		log.Fatalf("failed to parse default-charge-controllers.json: %v", err)
 	}
 }

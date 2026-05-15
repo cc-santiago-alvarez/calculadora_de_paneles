@@ -11,8 +11,9 @@ const METER_INFO: Record<SystemType, { meters: { name: string; detail: string }[
   'off-grid': {
     meters: [
       { name: '1 medidor interno', detail: 'Consumo propio y monitoreo' },
+      { name: 'Regulador de carga MPPT', detail: 'Requerido si el inversor no tiene MPPT integrado' },
     ],
-    note: 'No requiere medidores oficiales. Solo un sensor/medidor interno para control del propietario.',
+    note: 'No requiere medidores oficiales. Los inversores off-grid sin MPPT integrado (ej. Victron MultiPlus-II, SMA Sunny Island) necesitan un regulador de carga externo entre los paneles y el banco de baterias.',
   },
   'hybrid': {
     meters: [
@@ -62,7 +63,15 @@ export default function SystemTypeStep() {
           return (
             <button
               key={type.value}
-              onClick={() => setFormData({ systemType: type.value })}
+              onClick={() => {
+                setFormData({
+                  systemType: type.value,
+                  equipment: {
+                    ...formData.equipment,
+                    chargeControllerId: type.value === 'off-grid' ? formData.equipment.chargeControllerId : '',
+                  },
+                });
+              }}
               className={`p-6 rounded-lg border-2 text-left transition-colors duration-fast ease-decel ${
                 isSelected
                   ? 'border-brand bg-brand-soft'

@@ -169,4 +169,28 @@ func seedCatalog(ctx context.Context, catalogRepo *repository.CatalogRepo) {
 	} else if n > 0 {
 		log.Printf("Catalog: upserted %d inverters", n)
 	}
+
+	controllers := make([]model.ChargeControllerCatalog, len(data.DefaultChargeControllers))
+	for i, cc := range data.DefaultChargeControllers {
+		controllers[i] = model.ChargeControllerCatalog{
+			Manufacturer:      cc.Manufacturer,
+			Model:             cc.Model,
+			Type:              cc.Type,
+			RatedPowerW:       cc.RatedPowerW,
+			MaxPVVoltage:      cc.MaxPVVoltage,
+			MaxPVCurrent:      cc.MaxPVCurrent,
+			BatteryVoltages:   cc.BatteryVoltages,
+			MaxChargeCurrentA: cc.MaxChargeCurrentA,
+			Efficiency:        cc.Efficiency,
+			CostCOP:           cc.CostCOP,
+			Warranty:          cc.Warranty,
+			Weight:            cc.Weight,
+			IsActive:          true,
+		}
+	}
+	if n, err := catalogRepo.UpsertChargeControllers(ctx, controllers); err != nil {
+		log.Printf("Warning: failed to upsert charge controllers: %v", err)
+	} else if n > 0 {
+		log.Printf("Catalog: upserted %d charge controllers", n)
+	}
 }
